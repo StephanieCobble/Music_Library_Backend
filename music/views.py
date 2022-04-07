@@ -1,4 +1,5 @@
 
+from turtle import title
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -41,6 +42,9 @@ class SongDetail(APIView):
 
     def delete(self, request, pk, format=None):
         song = self.get_object(pk)
+        delete_conf = {
+            "The following song was deleted": song.title
+        }
         song.delete()
-        return Response(song, status=status.HTTP_204_NO_CONTENT)
+        return Response(delete_conf, status=status.HTTP_200_OK)
 
