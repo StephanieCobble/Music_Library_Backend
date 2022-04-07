@@ -1,4 +1,5 @@
 
+from functools import partial
 from turtle import title
 from django.http import Http404
 from rest_framework.views import APIView
@@ -6,6 +7,7 @@ from rest_framework.response import Response
 from .serializers import SongSerializer
 from .models import Song
 from rest_framework import status
+from django.db.models import Count
 
 # Create your views here.
 
@@ -38,7 +40,7 @@ class SongDetail(APIView):
         serializer = SongSerializer(song, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk, format=None):
         song = self.get_object(pk)
@@ -47,4 +49,17 @@ class SongDetail(APIView):
         }
         song.delete()
         return Response(delete_conf, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk, format=None):
+        song = self.get_object(pk)
+        song.like += 1
+        serializer = SongSerializer(song, data=request.data, partial=True) 
+        like_count_response = {
+            "Song Title": song.title,
+            "Likes": song.like
+        }
+        if serializer.is_valid():
+            song.save()
+            return Response(like_count_response, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
 
